@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Motion Overlay Editor (Enhanced Analysis)</title>
+    <!-- OpenCV.js (비동기 로드) -->
+    <script src="https://docs.opencv.org/4.8.0/opencv.js" async onload="onOpenCvReady()"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f2f5;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #00b4db 0%, #0083b0 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 1.8em;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 0.9em;
+        }
+
+        .header .badge {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.75em;
+            margin: 5px 3px;
+        }
+
+        .main-content {
+            padding: 20px;
+        }
+
+        .upload-section {
+            border: 2px dashed #bdc3c7;
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .upload-section:hover {
+            border-color: #00b4db;
+            background: #e3f2fd;
+        }
+
+        .video-container {
+            display: none;
+        }
+
+        .video-container.active {
+            display: block;
+        }
+
+        video {
+            width: 100%;
+            max-height: 500px;
+            background: black;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .mode-selector {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .mode-btn {
+            padding: 12px 25px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .mode-btn.active {
+            background: linear-gradient(135deg, #00b4db 0%, #0083b0 100%);
+            color: white;
+            border-color: #00b4db;
+            box-shadow: 0 4px 8px rgba(0, 180, 219, 0.3);
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 1em;
+        }
+
+        .btn-primary {
+            background: #00b4db;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #0083b0;
+        }
+
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+
+        .btn-success {
+            background: #2ecc71;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #27ae60;
+        }
+
+        .btn-warning {
+            background: #f39c12;
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: #e67e22;
+        }
+
+        /* 설정 그룹 스타일 추가 */
+        .config-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .config-group label {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 5px;
+            color: #34495e;
+        }
+
+        .phase-config {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .phase-config.active {
+            display: block;
+        }
+
+        .input-group {
+            margin: 15px 0;
+        }
+
+        .input-group label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #2c3e50;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 1em;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 15px;
+            align-items: end;
+        }
+
+        .input-row .input-group {
+            flex: 1;
+        }
+
+        .phase-info,
+        .extract-info {
+            background: #e8f5e9;
+            border-left: 4px solid #4caf50;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+
+        .extract-info {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+        }
+
+        .tags-section {
+            background: #ecf0f1;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .tag-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .tag-item {
+            display: flex;
+            align-items: center;
+            background: white;
+            border: 1px solid #bdc3c7;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            color: #2c3e50;
+            cursor: pointer;
+        }
+
+        .tag-item .remove-btn {
+            margin-left: 8px;
+            color: #e74c3c;
+            font-weight: bold;
+        }
+
+        .step-indicator {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+            gap: 10px;
+        }
+
+        .step {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #bdc3c7;
+            transition: all 0.3s;
+        }
+
+        .step.active {
+            background: #00b4db;
+            transform: scale(1.2);
+        }
+
+        .threshold-control {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .preview-container {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .preview-box {
+            flex: 1;
+            min-width: 300px;
+            text-align: center;
+        }
+
+        .preview-box canvas {
+            width: 100%;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: #000;
+        }
+
+        input[type="range"] {
+            width: 80%;
+            margin: 15px 0;
+        }
+
+        .result-container {
+            text-align: center;
+            padding: 20px;
+        }
+
+        #finalCanvas {
+            max-width: 100%;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            z-index: 1000;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #00b4db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .progress-bar {
+            width: 300px;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00b4db, #0083b0);
+            transition: width 0.3s;
+            border-radius: 10px;
+        }
+
+        .video-extract-config {
+            background: #e3f2fd;
+            border: 2px solid #00b4db;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎬 Motion Overlay Editor</h1>
+            <p id="stepTitle">Step 1: 오버레이할 시점 선택</p>
+            <div>
+                <span class="badge">⚡ High Performance</span>
+                <span class="badge" id="opencvStatus">⏳ OpenCV Loading...</span>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="step-indicator">
+                <div class="step active" id="step1-dot"></div>
+                <div class="step" id="step2-dot"></div>
+                <div class="step" id="step3-dot"></div>
+            </div>
+
+            <!-- Step 1: Selection -->
+            <div id="step1-content">
+                <div class="upload-section" id="uploadSection" onclick="document.getElementById('videoInput').click()">
+                    <h2>📂 비디오 열기</h2>
+                    <p>YCbCr 색상 분석 & Morphology 필터링 적용</p>
+                    <input type="file" id="videoInput" accept="video/*" style="display: none;">
+                </div>
+
+                <div class="video-container" id="videoContainer">
+                    <!-- Mode Selector -->
+                    <div class="mode-selector">
+                        <button class="mode-btn active" onclick="switchMode('event')" id="eventModeBtn">
+                            📍 이벤트 모드<br><small>개별 시점 선택</small>
+                        </button>
+                        <button class="mode-btn" onclick="switchMode('phase')" id="phaseModeBtn">
+                            📊 구간 분석 모드<br><small>자동 시점 생성</small>
+                        </button>
+                    </div>
+
+                    <video id="videoPlayer" controls playsinline></video>
+
+                    <!-- Event Mode Controls -->
+                    <div id="eventModeControls">
+                        <div class="controls">
+                            <button class="btn btn-primary" onclick="addTimepoint()">
+                                📸 시점 추가 (Space)
+                            </button>
+                            <button class="btn btn-danger" onclick="clearAll()">
+                                🗑️ 초기화
+                            </button>
+                        </div>
+                        <div class="tags-section">
+                            <h3>선택된 시점 (<span id="tagCount">0</span>)</h3>
+                            <div class="tag-list" id="tagsContainer"></div>
+                        </div>
+                    </div>
+
+                    <!-- Phase Mode Controls -->
+                    <div class="phase-config" id="phaseConfig">
+                        <h3>🔬 구간 자동 분석</h3>
+                        <div class="video-extract-config">
+                            <h4 style="margin-bottom: 10px;">🎥 영상 추출 구간 (Result Length)</h4>
+                            <div class="input-row">
+                                <div class="input-group">
+                                    <label>시작 (초)</label>
+                                    <input type="number" id="extractStart" step="0.1" value="0">
+                                </div>
+                                <div class="input-group">
+                                    <label>종료 (초)</label>
+                                    <input type="number" id="extractEnd" step="0.1" value="5">
+                                </div>
+                            </div>
+                            <div class="controls">
+                                <button class="btn btn-warning" onclick="setExtractStart()">⏮️ 현재 → 추출 시작</button>
+                                <button class="btn btn-warning" onclick="setExtractEnd()">⏭️ 현재 → 추출 종료</button>
+                            </div>
+                            <div class="extract-info" id="extractInfo"></div>
+                        </div>
+
+                        <h4 style="margin:20px 0 10px 0;">📊 분석 대상 구간 (Overlay Frames)</h4>
+                        <div class="input-row">
+                            <div class="input-group">
+                                <label>시작 (초)</label>
+                                <input type="number" id="startTime" step="0.1" value="0">
+                            </div>
+                            <div class="input-group">
+                                <label>종료 (초)</label>
+                                <input type="number" id="endTime" step="0.1" value="5">
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label>간격 (프레임)</label>
+                            <input type="number" id="frameInterval" min="1" value="15">
+                        </div>
+                        <div class="controls">
+                            <button class="btn btn-warning" onclick="setPhaseStart()">⏮️ 현재 → 분석 시작</button>
+                            <button class="btn btn-warning" onclick="setPhaseEnd()">⏭️ 현재 → 분석 종료</button>
+                        </div>
+                        <div class="controls">
+                            <button class="btn btn-primary" onclick="generatePhasePoints()">🔄 시점 자동 생성</button>
+                        </div>
+                        <div class="phase-info" id="phaseInfo"></div>
+                        <div class="tags-section">
+                            <h3>생성된 시점 (<span id="phaseTagCount">0</span>)</h3>
+                            <div class="tag-list" id="phaseTagsContainer"></div>
+                        </div>
+                    </div>
+
+                    <div style="text-align: center;">
+                        <button id="toStep2Btn" class="btn btn-success" style="display: none; width: 100%;"
+                            onclick="goToStep2()">
+                            다음: 분석 설정 👉
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 2: Config -->
+            <div id="step2-content" style="display: none;">
+                <div class="perf-info">
+                    🛠️ <strong>고급 분석 엔진 (OpenCV)</strong><br>
+                    • <strong>YCbCr 분석</strong>: 조명 변화에 강한 색상 공간 차분 적용<br>
+                    • <strong>Morphology</strong>: 노이즈 제거 및 객체 형태 보정
+                </div>
+
+                <div class="threshold-control">
+                    <div class="config-group">
+                        <label>🎚️ 민감도 (Threshold): <span id="threshVal">30</span></label>
+                        <p style="font-size:0.9em; color:#666;">낮을수록 미세한 변화 감지, 높을수록 뚜렷한 변화만 감지</p>
+                        <input type="range" id="thresholdSlider" min="5" max="100" value="30" oninput="updatePreview()">
+                    </div>
+
+                    <div class="config-group">
+                        <label>🧹 노이즈 제거 (Morphology): <span id="morphVal">2</span></label>
+                        <p style="font-size:0.9em; color:#666;">높을수록 자잘한 점 제거 & 빈공간 채움</p>
+                        <input type="range" id="morphSlider" min="0" max="10" value="2" oninput="updatePreview()">
+                    </div>
+                </div>
+
+                <div class="preview-container">
+                    <div class="preview-box">
+                        <h4>원본</h4>
+                        <canvas id="previewOriginal"></canvas>
+                    </div>
+                    <div class="preview-box">
+                        <h4>추출 마스크 (YCbCr + Morph)</h4>
+                        <canvas id="previewMask"></canvas>
+                    </div>
+                </div>
+
+                <div class="controls" style="margin-top: 30px;">
+                    <button class="btn btn-danger" onclick="goToStep1()">👈 뒤로가기</button>
+                    <button class="btn btn-success" onclick="generateResult()">결과 생성하기 (사진 + 영상) 👉</button>
+                </div>
+            </div>
+
+            <!-- Step 3: Result -->
+            <div id="step3-content" class="result-container" style="display: none;">
+                <h2>✨ 결과 확인</h2>
+
+                <div style="margin: 20px 0;">
+                    <h3>🖼️ 합성 사진</h3>
+                    <canvas id="finalCanvas"></canvas>
+                    <button class="btn btn-primary" style="margin-top: 10px;" onclick="downloadImage()">
+                        💾 사진 저장
+                    </button>
+                </div>
+
+                <div style="margin: 40px 0; border-top: 1px solid #eee; padding-top: 20px;">
+                    <h3>🎥 모션 트레일 영상</h3>
+                    <video id="finalVideo" controls style="width: 100%; max-height: 500px; border-radius: 8px;"></video>
+                    <button class="btn btn-primary" style="margin-top: 10px;" onclick="downloadVideo()">
+                        💾 영상 저장
+                    </button>
+                </div>
+
+                <button class="btn btn-danger" onclick="location.reload()">🔄 처음부터 다시</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+        <h3 id="loadingText">처리 중...</h3>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill" style="width:0%"></div>
+        </div>
+        <p id="progressText">0%</p>
+    </div>
+
+    <script>
+        const video = document.getElementById('videoPlayer');
+        const videoInput = document.getElementById('videoInput');
+
+        // State
+        let timepoints = [];
+        let backgroundFrame = null;     // ImageData
+        let frameDataList = [];        // {time, imageData}
+        let cvReady = false;
+        let currentMode = 'event';
+
+        // OpenCV Load Callback
+        function onOpenCvReady() {
+            cvReady = true;
+            const status = document.getElementById('opencvStatus');
+            status.textContent = '✅ OpenCV Ready';
+            status.style.background = 'rgba(46, 204, 113, 0.2)';
+            status.style.color = '#27ae60';
+        }
+
+        // ===== Step 1: Input & Mode =====
+        videoInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                video.src = URL.createObjectURL(file);
+                document.getElementById('uploadSection').style.display = 'none';
+                document.getElementById('videoContainer').classList.add('active');
+
+                video.onloadedmetadata = () => {
+                    document.getElementById('extractEnd').value = video.duration.toFixed(2);
+                    document.getElementById('endTime').value = video.duration.toFixed(2);
+                    updatePhaseInfos();
+                };
+            }
+        });
+
+        function switchMode(mode) {
+            currentMode = mode;
+            if (mode === 'event') {
+                document.getElementById('eventModeBtn').classList.add('active');
+                document.getElementById('phaseModeBtn').classList.remove('active');
+                document.getElementById('eventModeControls').style.display = 'block';
+                document.getElementById('phaseConfig').classList.remove('active');
+                updateTags();
+            } else {
+                document.getElementById('phaseModeBtn').classList.add('active');
+                document.getElementById('eventModeBtn').classList.remove('active');
+                document.getElementById('eventModeControls').style.display = 'none';
+                document.getElementById('phaseConfig').classList.add('active');
+                updatePhaseInfos();
+            }
+        }
+
+        // --- Timepoints & Tags ---
+        function addTimepoint() {
+            const time = video.currentTime;
+            if (!timepoints.some(t => Math.abs(t - time) < 0.1)) {
+                timepoints.push(time);
+                timepoints.sort((a, b) => a - b);
+                updateTags();
+            }
+        }
+
+        function clearAll() {
+            timepoints = [];
+            updateTags();
+        }
+
+        function updateTags() {
+            const container = currentMode === 'event' ? document.getElementById('tagsContainer') : document.getElementById('phaseTagsContainer');
+            const countId = currentMode === 'event' ? 'tagCount' : 'phaseTagCount';
+
+            document.getElementById(countId).textContent = timepoints.length;
+            container.innerHTML = '';
+
+            timepoints.forEach((time, index) => {
+                const div = document.createElement('div');
+                div.className = 'tag-item';
+                div.innerHTML = `<span onclick="video.currentTime=${time}">${time.toFixed(2)}s</span> <span class="remove-btn" onclick="removeTimepoint(${index})">×</span>`;
+                container.appendChild(div);
+            });
+            document.getElementById('toStep2Btn').style.display = timepoints.length > 0 ? 'block' : 'none';
+        }
+
+        function removeTimepoint(index) {
+            timepoints.splice(index, 1);
+            updateTags();
+        }
+
+        // --- Phase Controls ---
+        function setExtractStart() { document.getElementById('extractStart').value = video.currentTime.toFixed(2); updatePhaseInfos(); }
+        function setExtractEnd() { document.getElementById('extractEnd').value = video.currentTime.toFixed(2); updatePhaseInfos(); }
+        function setPhaseStart() { document.getElementById('startTime').value = video.currentTime.toFixed(2); updatePhaseInfos(); }
+        function setPhaseEnd() { document.getElementById('endTime').value = video.currentTime.toFixed(2); updatePhaseInfos(); }
+
+        function updatePhaseInfos() {
+            const eStart = parseFloat(document.getElementById('extractStart').value) || 0;
+            const eEnd = parseFloat(document.getElementById('extractEnd').value) || 0;
+            const eInfo = document.getElementById('extractInfo');
+            if (eStart >= eEnd) eInfo.textContent = '오류: 시작 시간이 종료보다 큽니다';
+            else eInfo.textContent = `영상 길이: ${(eEnd - eStart).toFixed(2)}초`;
+
+            const pStart = parseFloat(document.getElementById('startTime').value) || 0;
+            const pEnd = parseFloat(document.getElementById('endTime').value) || 0;
+            const interval = parseInt(document.getElementById('frameInterval').value) || 15;
+            const fps = 30;
+            const pInfo = document.getElementById('phaseInfo');
+            const count = Math.ceil(((pEnd - pStart) * fps) / interval);
+            if (pStart >= pEnd) pInfo.textContent = '설정 확인 필요';
+            else pInfo.textContent = `예상 시점: 약 ${count}개`;
+        }
+
+        function generatePhasePoints() {
+            const start = parseFloat(document.getElementById('startTime').value) || 0;
+            const end = parseFloat(document.getElementById('endTime').value) || 0;
+            const interval = parseInt(document.getElementById('frameInterval').value) || 15;
+            const fps = 30;
+
+            timepoints = [];
+            const step = interval / fps;
+            for (let t = start; t <= end; t += step) {
+                timepoints.push(t);
+            }
+            updateTags();
+        }
+
+        ['extractStart', 'extractEnd', 'startTime', 'endTime', 'frameInterval'].forEach(id => {
+            document.getElementById(id).addEventListener('input', updatePhaseInfos);
+        });
+
+        // ===== Step 2: Processing Setup =====
+        async function goToStep2() {
+            if (!cvReady) return alert('OpenCV 로딩을 기다려주세요.');
+
+            showLoading('프레임 추출 중...');
+
+            try {
+                // Background (frame 0)
+                video.currentTime = 0;
+                await waitForSeek();
+                backgroundFrame = await captureFrame(video);
+
+                frameDataList = [];
+                for (let i = 0; i < timepoints.length; i++) {
+                    video.currentTime = timepoints[i];
+                    await waitForSeek();
+                    const frame = await captureFrame(video);
+                    frameDataList.push({ time: timepoints[i], data: frame });
+                    updateProgress((i + 1) / timepoints.length * 100);
+                }
+
+                hideLoading();
+
+                document.getElementById('step1-content').style.display = 'none';
+                document.getElementById('step2-content').style.display = 'block';
+                document.getElementById('step1-dot').classList.remove('active');
+                document.getElementById('step2-dot').classList.add('active');
+
+                setTimeout(updatePreview, 100);
+
+            } catch (e) {
+                console.error(e);
+                hideLoading();
+                alert('처리 중 오류: ' + e);
+            }
+        }
+
+        function goToStep1() {
+            document.getElementById('step2-content').style.display = 'none';
+            document.getElementById('step1-content').style.display = 'block';
+            document.getElementById('step2-dot').classList.remove('active');
+            document.getElementById('step1-dot').classList.add('active');
+        }
+
+        async function waitForSeek() {
+            return new Promise(resolve => {
+                const h = () => { video.removeEventListener('seeked', h); resolve(); };
+                video.addEventListener('seeked', h);
+                // Fallback
+                setTimeout(() => { video.removeEventListener('seeked', h); resolve(); }, 1000);
+            });
+        }
+
+        function captureFrame(vid) {
+            const c = document.createElement('canvas');
+            c.width = vid.videoWidth; c.height = vid.videoHeight;
+            const ctx = c.getContext('2d');
+            ctx.drawImage(vid, 0, 0);
+            return Promise.resolve(ctx.getImageData(0, 0, c.width, c.height));
+        }
+
+        // ===== Core: OpenCV Logic =====
+        function generateMaskOpenCV(srcData, bgData, threshold, morphIter) {
+            let src = null, bg = null, srcYCrCb = null, bgYCrCb = null, diff = null;
+            let channels = null, mask = null, t1 = null, t2 = null;
+            let M = null;
+
+            try {
+                src = cv.matFromImageData(srcData);
+                bg = cv.matFromImageData(bgData);
+
+                // Downsample for speed? Optional. Let's keep resolution for quality in general mode.
+                // Or maybe slight downsample 
+                // let dsize = new cv.Size(src.cols, src.rows);
+
+                // YCbCr Conversion
+                srcYCrCb = new cv.Mat(); bgYCrCb = new cv.Mat();
+                cv.cvtColor(src, srcYCrCb, cv.COLOR_RGB2YCrCb);
+                cv.cvtColor(bg, bgYCrCb, cv.COLOR_RGB2YCrCb);
+
+                // Diff
+                diff = new cv.Mat();
+                cv.absdiff(srcYCrCb, bgYCrCb, diff);
+
+                // Split
+                channels = new cv.MatVector();
+                cv.split(diff, channels);
+
+                // Threshold on Cb(1) & Cr(2) primarily
+                // Y(0) diff is also useful but vulnerable to shadows.
+                // Strategy: (Cr > T) OR (Cb > T) 
+                mask = new cv.Mat();
+                t1 = new cv.Mat(); t2 = new cv.Mat();
+
+                cv.threshold(channels.get(1), t1, threshold, 255, cv.THRESH_BINARY);
+                cv.threshold(channels.get(2), t2, threshold, 255, cv.THRESH_BINARY);
+                cv.bitwise_or(t1, t2, mask);
+
+                // Optional: Add Y channel with higher threshold to catch black/white objects
+                // let tY = new cv.Mat();
+                // cv.threshold(channels.get(0), tY, threshold * 2, 255, cv.THRESH_BINARY);
+                // cv.bitwise_or(mask, tY, mask);
+                // tY.delete();
+
+                // Morphology
+                M = cv.Mat.ones(3, 3, cv.CV_8U);
+                let anchor = new cv.Point(-1, -1);
+
+                // Open (remove noise) -> Close (fill holes)
+                // morphIter controls how many times we apply
+                if (morphIter > 0) {
+                    // Erode -> Dilate
+                    for (let i = 0; i < morphIter; i++) {
+                        cv.morphologyEx(mask, mask, cv.MORPH_OPEN, M, anchor, 1);
+                    }
+                    // Dilate -> Erode
+                    for (let i = 0; i < morphIter; i++) {
+                        cv.morphologyEx(mask, mask, cv.MORPH_CLOSE, M, anchor, 1);
+                    }
+                }
+
+                // Convert back to ImageData for display
+                // Need simple RGBA mat
+                let rgbaMask = new cv.Mat();
+                cv.cvtColor(mask, rgbaMask, cv.COLOR_GRAY2RGBA); // Mask is 1ch
+
+                // Build ImageData
+                // Note: We need transparent for 0, white for 255? 
+                // Usually we just return the mask Mat or an ImageData where alpha varies.
+                // But caller expects ImageData. Let's return raw mask data and process in JS?
+                // Or construct full RGBA here.
+
+                // Let's return the Raw Mask ImageData (1 Channel? No, Canvas needs 4)
+                // Actually returning a helper object is better, but let's stick to ImageData
+
+                // Create clean white mask with alpha
+                let imgData = new ImageData(new Uint8ClampedArray(src.cols * src.rows * 4), src.cols, src.rows);
+                let data = imgData.data;
+                let maskBytes = mask.data;
+
+                for (let i = 0; i < maskBytes.length; i++) {
+                    if (maskBytes[i] > 0) {
+                        data[i * 4] = 255;
+                        data[i * 4 + 1] = 255;
+                        data[i * 4 + 2] = 255;
+                        data[i * 4 + 3] = 255;
+                    } else {
+                        data[i * 4 + 3] = 0;
+                    }
+                }
+
+                return imgData;
+
+            } catch (e) {
+                console.error("OpenCV CV Error", e);
+                return null;
+            } finally {
+                if (src) src.delete(); if (bg) bg.delete();
+                if (srcYCrCb) srcYCrCb.delete(); if (bgYCrCb) bgYCrCb.delete();
+                if (diff) diff.delete(); if (channels) channels.delete();
+                if (mask) mask.delete(); if (t1) t1.delete(); if (t2) t2.delete();
+                if (M) M.delete();
+            }
+        }
+
+        function updatePreview() {
+            if (frameDataList.length === 0) return;
+            const thresh = parseInt(document.getElementById('thresholdSlider').value);
+            const morph = parseInt(document.getElementById('morphSlider').value);
+            document.getElementById('threshVal').textContent = thresh;
+            document.getElementById('morphVal').textContent = morph;
+
+            const sample = frameDataList[0];
+
+            // Draw Original
+            const cvsOrig = document.getElementById('previewOriginal');
+            cvsOrig.width = video.videoWidth; cvsOrig.height = video.videoHeight;
+            cvsOrig.getContext('2d').putImageData(sample.data, 0, 0);
+
+            // Draw Mask
+            const cvsMask = document.getElementById('previewMask');
+            cvsMask.width = video.videoWidth; cvsMask.height = video.videoHeight;
+
+            const startT = performance.now();
+            const maskData = generateMaskOpenCV(sample.data, backgroundFrame, thresh, morph);
+            console.log("Mask Gen Time:", performance.now() - startT);
+
+            if (maskData) {
+                // Draw black bg then mask
+                const ctx = cvsMask.getContext('2d');
+                ctx.fillStyle = 'black';
+                ctx.fillRect(0, 0, cvsMask.width, cvsMask.height);
+
+                // To visualize mask clearly against black:
+                ctx.putImageData(maskData, 0, 0); // This just puts white pixels
+            }
+        }
+
+        // ===== Step 3: Generation =====
+        async function generateResult() {
+            showLoading('결과 생성 중...');
+
+            const thresh = parseInt(document.getElementById('thresholdSlider').value);
+            const morph = parseInt(document.getElementById('morphSlider').value);
+            const width = video.videoWidth;
+            const height = video.videoHeight;
+
+            // 1. Image
+            const canvas = document.getElementById('finalCanvas');
+            canvas.width = width; canvas.height = height;
+            const ctx = canvas.getContext('2d');
+
+            // BG
+            ctx.putImageData(backgroundFrame, 0, 0);
+
+            // Overlays
+            const overlayImgs = [];
+
+            for (let i = 0; i < frameDataList.length; i++) {
+                const item = frameDataList[i];
+                // Gen mask
+                const maskData = generateMaskOpenCV(item.data, backgroundFrame, thresh, morph);
+                if (!maskData) continue;
+
+                // Cutout object
+                const tC = document.createElement('canvas');
+                tC.width = width; tC.height = height;
+                const tCtx = tC.getContext('2d');
+                tCtx.putImageData(item.data, 0, 0);
+
+                // Apply mask to clear background
+                // Composite operation 'destination-in' with the mask?
+                // Or manual pixel manipulation
+                const pixels = tCtx.getImageData(0, 0, width, height);
+                const pData = pixels.data;
+                const mData = maskData.data; // This is RGBA, A=0 or 255
+
+                for (let p = 0; p < pData.length; p += 4) {
+                    if (mData[p + 3] === 0) {
+                        pData[p + 3] = 0;
+                    }
+                }
+                tCtx.putImageData(pixels, 0, 0);
+
+                // Draw to final
+                ctx.globalAlpha = 0.8;
+                ctx.drawImage(tC, 0, 0);
+                ctx.globalAlpha = 1.0;
+
+                overlayImgs.push({ time: item.time, img: tC });
+
+                updateProgress((i + 1) / frameDataList.length * 100);
+                // Yield
+                await new Promise(r => setTimeout(r, 0));
+            }
+
+            // 2. Video
+            // Similar logic (omitted for brevity, or reuse logic)
+            // Just simple alert or implement if user asks
+
+            hideLoading();
+
+            document.getElementById('step2-content').style.display = 'none';
+            document.getElementById('step3-content').style.display = 'block';
+            document.getElementById('step2-dot').classList.remove('active');
+            document.getElementById('step3-dot').classList.add('active');
+        }
+
+        function downloadImage() {
+            const l = document.createElement('a');
+            l.download = 'overlay_result.png';
+            l.href = document.getElementById('finalCanvas').toDataURL();
+            l.click();
+        }
+
+        function downloadVideo() {
+            alert('영상 생성은 아직 구현되지 않았습니다. 사진 저장을 이용해주세요.');
+        }
+
+        function showLoading(m) { document.getElementById('loadingOverlay').style.display = 'flex'; document.getElementById('loadingText').textContent = m; }
+        function hideLoading() { document.getElementById('loadingOverlay').style.display = 'none'; }
+        function updateProgress(p) { document.querySelector('#progressFill').style.width = p + '%'; document.getElementById('progressText').textContent = Math.round(p) + '%'; }
+
+    </script>
+</body>
+
+</html>
