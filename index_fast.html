@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Motion Overlay Editor (Phase Mode - WebGL)</title>
+    <title>Motion Overlay Editor (Fast - WebGL)</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -24,7 +24,7 @@
         }
 
         .header {
-            background: linear-gradient(135deg, #00b4db 0%, #0083b0 100%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             padding: 20px;
             text-align: center;
@@ -38,7 +38,7 @@
             padding: 3px 10px;
             border-radius: 12px;
             font-size: 0.75em;
-            margin: 5px 3px;
+            margin-top: 5px;
         }
 
         .main-content { padding: 20px; }
@@ -53,7 +53,7 @@
             transition: all 0.3s;
         }
 
-        .upload-section:hover { border-color: #00b4db; background: #e3f2fd; }
+        .upload-section:hover { border-color: #667eea; background: #f7f9fc; }
 
         .video-container { display: none; }
         .video-container.active { display: block; }
@@ -65,30 +65,6 @@
             border-radius: 8px;
             margin-bottom: 15px;
             display: block;
-        }
-
-        .mode-selector {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-            margin-bottom: 20px;
-        }
-
-        .mode-btn {
-            padding: 12px 25px;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            background: white;
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.3s;
-        }
-
-        .mode-btn.active {
-            background: linear-gradient(135deg, #00b4db 0%, #0083b0 100%);
-            color: white;
-            border-color: #00b4db;
-            box-shadow: 0 4px 8px rgba(0, 180, 219, 0.3);
         }
 
         .controls {
@@ -109,72 +85,14 @@
             font-size: 1em;
         }
 
-        .btn-primary { background: #00b4db; color: white; }
-        .btn-primary:hover { background: #0083b0; }
+        .btn-primary { background: #667eea; color: white; }
+        .btn-primary:hover { background: #5568d3; }
 
         .btn-danger { background: #e74c3c; color: white; }
         .btn-danger:hover { background: #c0392b; }
 
         .btn-success { background: #2ecc71; color: white; }
         .btn-success:hover { background: #27ae60; }
-
-        .btn-warning { background: #f39c12; color: white; }
-        .btn-warning:hover { background: #e67e22; }
-
-        .phase-config {
-            background: #fff3cd;
-            border: 2px solid #ffc107;
-            border-radius: 10px;
-            padding: 20px;
-            margin-bottom: 20px;
-            display: none;
-        }
-
-        .phase-config.active { display: block; }
-
-        .input-group {
-            margin: 15px 0;
-        }
-
-        .input-group label {
-            display: block;
-            font-weight: bold;
-            margin-bottom: 5px;
-            color: #2c3e50;
-        }
-
-        .input-group input {
-            width: 100%;
-            padding: 10px;
-            border: 2px solid #ddd;
-            border-radius: 5px;
-            font-size: 1em;
-        }
-
-        .input-group input:focus {
-            outline: none;
-            border-color: #00b4db;
-            box-shadow: 0 0 5px rgba(0, 180, 219, 0.3);
-        }
-
-        .input-row {
-            display: flex;
-            gap: 15px;
-            align-items: end;
-        }
-
-        .input-row .input-group {
-            flex: 1;
-        }
-
-        .phase-info {
-            background: #e8f5e9;
-            border-left: 4px solid #4caf50;
-            padding: 10px;
-            margin: 10px 0;
-            border-radius: 4px;
-            font-size: 0.9em;
-        }
 
         .tags-section {
             background: #ecf0f1;
@@ -223,7 +141,7 @@
             transition: all 0.3s;
         }
 
-        .step.active { background: #00b4db; transform: scale(1.2); box-shadow: 0 0 10px rgba(0, 180, 219, 0.5); }
+        .step.active { background: #667eea; transform: scale(1.2); }
 
         .threshold-control {
             background: #f8f9fa;
@@ -283,7 +201,7 @@
         .spinner {
             width: 50px; height: 50px;
             border: 5px solid #f3f3f3;
-            border-top: 5px solid #00b4db;
+            border-top: 5px solid #667eea;
             border-radius: 50%;
             animation: spin 1s linear infinite;
             margin-bottom: 20px;
@@ -302,10 +220,9 @@
         
         .progress-fill {
             height: 100%;
-            background: linear-gradient(90deg, #00b4db, #0083b0);
+            background: linear-gradient(90deg, #667eea, #764ba2);
             transition: width 0.3s;
             border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 180, 219, 0.5);
         }
 
         .perf-info {
@@ -317,23 +234,6 @@
             font-size: 0.85em;
         }
 
-        .video-extract-config {
-            background: #e3f2fd;
-            border: 2px solid #00b4db;
-            border-radius: 10px;
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-
-        .extract-info {
-            background: #fff3cd;
-            border-left: 4px solid #ffc107;
-            padding: 10px;
-            margin: 10px 0;
-            border-radius: 4px;
-            font-size: 0.9em;
-        }
-
     </style>
 </head>
 <body>
@@ -341,10 +241,7 @@
         <div class="header">
             <h1>🎬 Motion Overlay Editor</h1>
             <p id="stepTitle">Step 1: 오버레이할 시점 선택</p>
-            <div>
-                <span class="badge">⚡ WebGL Accelerated</span>
-                <span class="badge">🔬 Analysis Mode</span>
-            </div>
+            <span class="badge">⚡ WebGL Accelerated</span>
         </div>
 
         <div class="main-content">
@@ -363,107 +260,20 @@
                 </div>
 
                 <div class="video-container" id="videoContainer">
-                    <!-- 모드 선택 -->
-                    <div class="mode-selector">
-                        <button class="mode-btn active" onclick="switchMode('event')" id="eventModeBtn">
-                            📍 이벤트 모드<br><small>개별 시점 선택</small>
-                        </button>
-                        <button class="mode-btn" onclick="switchMode('phase')" id="phaseModeBtn">
-                            📊 구간 분석 모드<br><small>시작/끝/간격 설정</small>
-                        </button>
-                    </div>
-
                     <video id="videoPlayer" controls></video>
                     
-                    <!-- 이벤트 모드 컨트롤 -->
-                    <div id="eventModeControls">
-                        <div class="controls">
-                            <button class="btn btn-primary" onclick="addTimepoint()">
-                                📸 시점 추가 (Space)
-                            </button>
-                            <button class="btn btn-danger" onclick="clearAll()">
-                                🗑️ 초기화
-                            </button>
-                        </div>
-
-                        <div class="tags-section">
-                            <h3>선택된 시점 (<span id="tagCount">0</span>)</h3>
-                            <div class="tag-list" id="tagsContainer"></div>
-                        </div>
+                    <div class="controls">
+                        <button class="btn btn-primary" onclick="addTimepoint()">
+                            📸 시점 추가 (Space)
+                        </button>
+                        <button class="btn btn-danger" onclick="clearAll()">
+                            🗑️ 초기화
+                        </button>
                     </div>
 
-                    <!-- 구간 분석 모드 컨트롤 -->
-                    <div class="phase-config" id="phaseConfig">
-                        <h3>🔬 과학 분석 설정</h3>
-                        
-                        <div class="video-extract-config">
-                            <h4 style="margin-bottom: 10px;">🎥 영상 추출 구간 (최종 영상 길이)</h4>
-                            <div class="input-row">
-                                <div class="input-group">
-                                    <label>추출 시작 (초)</label>
-                                    <input type="number" id="extractStart" step="0.1" min="0" value="0" placeholder="예: 0">
-                                </div>
-                                <div class="input-group">
-                                    <label>추출 종료 (초)</label>
-                                    <input type="number" id="extractEnd" step="0.1" min="0" value="5" placeholder="예: 10">
-                                </div>
-                            </div>
-                            <div class="controls" style="margin-top: 10px;">
-                                <button class="btn btn-warning" onclick="setCurrentAsExtractStart()">
-                                    ⏮️ 현재 → 추출 시작
-                                </button>
-                                <button class="btn btn-warning" onclick="setCurrentAsExtractEnd()">
-                                    ⏭️ 현재 → 추출 종료
-                                </button>
-                            </div>
-                            <div class="extract-info" id="extractInfo">
-                                💡 최종 영상에 포함될 구간을 설정하세요.
-                            </div>
-                        </div>
-                        
-                        <h4 style="margin: 20px 0 10px 0;">📊 분석 대상 구간 (오버레이 시점)</h4>
-                        <div class="input-row">
-                            <div class="input-group">
-                                <label>시작 시간 (초)</label>
-                                <input type="number" id="startTime" step="0.1" min="0" value="0" placeholder="예: 0">
-                            </div>
-                            <div class="input-group">
-                                <label>종료 시간 (초)</label>
-                                <input type="number" id="endTime" step="0.1" min="0" value="5" placeholder="예: 10">
-                            </div>
-                        </div>
-
-                        <div class="input-group">
-                            <label>프레임 간격 (프레임 수)</label>
-                            <input type="number" id="frameInterval" min="1" value="30" placeholder="예: 30 (30프레임마다)">
-                        </div>
-
-                        <div class="controls" style="margin-top: 15px;">
-                            <button class="btn btn-warning" onclick="setCurrentAsStart()">
-                                ⏮️ 현재 위치를 시작점으로
-                            </button>
-                            <button class="btn btn-warning" onclick="setCurrentAsEnd()">
-                                ⏭️ 현재 위치를 종료점으로
-                            </button>
-                        </div>
-
-                        <div class="controls">
-                            <button class="btn btn-primary" onclick="calculatePhasePoints()">
-                                🔄 시점 자동 생성
-                            </button>
-                            <button class="btn btn-danger" onclick="clearAll()">
-                                🗑️ 초기화
-                            </button>
-                        </div>
-
-                        <div class="phase-info" id="phaseInfo">
-                            💡 설정을 입력하고 "시점 자동 생성"을 클릭하세요.
-                        </div>
-
-                        <div class="tags-section">
-                            <h3>생성된 시점 (<span id="phaseTagCount">0</span>)</h3>
-                            <div class="tag-list" id="phaseTagsContainer"></div>
-                        </div>
+                    <div class="tags-section">
+                        <h3>선택된 시점 (<span id="tagCount">0</span>)</h3>
+                        <div class="tag-list" id="tagsContainer"></div>
                     </div>
 
                     <div style="text-align: center;">
@@ -557,155 +367,6 @@
         let gl = null;
         let glProgram = null;
         let performanceStats = {};
-        let currentMode = 'event'; // 'event' or 'phase'
-        let extractStartTime = 0;
-        let extractEndTime = 5;
-
-        // ===== Mode Switching =====
-        function switchMode(mode) {
-            currentMode = mode;
-            
-            if (mode === 'event') {
-                document.getElementById('eventModeBtn').classList.add('active');
-                document.getElementById('phaseModeBtn').classList.remove('active');
-                document.getElementById('eventModeControls').style.display = 'block';
-                document.getElementById('phaseConfig').classList.remove('active');
-            } else {
-                document.getElementById('phaseModeBtn').classList.add('active');
-                document.getElementById('eventModeBtn').classList.remove('active');
-                document.getElementById('eventModeControls').style.display = 'none';
-                document.getElementById('phaseConfig').classList.add('active');
-            }
-            
-            updateTags();
-        }
-
-        function setCurrentAsStart() {
-            document.getElementById('startTime').value = video.currentTime.toFixed(2);
-            calculatePhaseInfo();
-        }
-
-        function setCurrentAsEnd() {
-            document.getElementById('endTime').value = video.currentTime.toFixed(2);
-            calculatePhaseInfo();
-        }
-
-        function setCurrentAsExtractStart() {
-            document.getElementById('extractStart').value = video.currentTime.toFixed(2);
-            updateExtractInfo();
-        }
-
-        function setCurrentAsExtractEnd() {
-            document.getElementById('extractEnd').value = video.currentTime.toFixed(2);
-            updateExtractInfo();
-        }
-
-        function updateExtractInfo() {
-            const start = parseFloat(document.getElementById('extractStart').value) || 0;
-            const end = parseFloat(document.getElementById('extractEnd').value) || 0;
-            const duration = end - start;
-            
-            const infoEl = document.getElementById('extractInfo');
-            if (start >= end) {
-                infoEl.innerHTML = '⚠️ 추출 종료 시간은 시작 시간보다 커야 합니다.';
-                infoEl.style.background = '#ffebee';
-                infoEl.style.borderColor = '#f44336';
-            } else if (end > video.duration) {
-                infoEl.innerHTML = `⚠️ 추출 종료 시간이 비디오 길이(${video.duration.toFixed(2)}초)를 초과합니다.`;
-                infoEl.style.background = '#ffebee';
-                infoEl.style.borderColor = '#f44336';
-            } else {
-                infoEl.innerHTML = `
-                    🎬 <strong>최종 영상 정보</strong><br>
-                    • 추출 구간: ${start.toFixed(2)}초 ~ ${end.toFixed(2)}초<br>
-                    • 영상 길이: ${duration.toFixed(2)}초
-                `;
-                infoEl.style.background = '#fff3cd';
-                infoEl.style.borderColor = '#ffc107';
-            }
-            
-            extractStartTime = start;
-            extractEndTime = end;
-        }
-
-        function calculatePhaseInfo() {
-            const start = parseFloat(document.getElementById('startTime').value) || 0;
-            const end = parseFloat(document.getElementById('endTime').value) || 0;
-            const interval = parseInt(document.getElementById('frameInterval').value) || 30;
-            const fps = 30; // 가정
-            
-            const duration = end - start;
-            const intervalSeconds = interval / fps;
-            const pointCount = Math.floor(duration / intervalSeconds) + 1;
-            
-            const infoEl = document.getElementById('phaseInfo');
-            if (start >= end) {
-                infoEl.innerHTML = '⚠️ 종료 시간은 시작 시간보다 커야 합니다.';
-                infoEl.style.background = '#ffebee';
-                infoEl.style.borderColor = '#f44336';
-            } else {
-                infoEl.innerHTML = `
-                    📊 <strong>분석 정보</strong><br>
-                    • 구간: ${start.toFixed(2)}초 ~ ${end.toFixed(2)}초 (${duration.toFixed(2)}초)<br>
-                    • 프레임 간격: ${interval}프레임 (${intervalSeconds.toFixed(2)}초마다)<br>
-                    • 생성될 시점: 약 <strong>${pointCount}개</strong>
-                `;
-                infoEl.style.background = '#e8f5e9';
-                infoEl.style.borderColor = '#4caf50';
-            }
-        }
-
-        function calculatePhasePoints() {
-            const start = parseFloat(document.getElementById('startTime').value) || 0;
-            const end = parseFloat(document.getElementById('endTime').value) || 0;
-            const interval = parseInt(document.getElementById('frameInterval').value) || 30;
-            const fps = 30; // 가정
-            
-            if (start >= end) {
-                alert('종료 시간은 시작 시간보다 커야 합니다.');
-                return;
-            }
-            
-            if (end > video.duration) {
-                alert(`종료 시간이 비디오 길이(${video.duration.toFixed(2)}초)를 초과합니다.`);
-                return;
-            }
-            
-            // 시점 생성
-            timepoints = [];
-            const intervalSeconds = interval / fps;
-            
-            for (let t = start; t <= end; t += intervalSeconds) {
-                if (t <= video.duration) {
-                    timepoints.push(Math.min(t, end));
-                }
-            }
-            
-            // 마지막 시점이 정확히 end가 아니면 추가
-            if (timepoints[timepoints.length - 1] < end && end <= video.duration) {
-                timepoints.push(end);
-            }
-            
-            updateTags();
-            
-            alert(`${timepoints.length}개의 시점이 생성되었습니다!`);
-        }
-
-        // 입력 변경시 정보 업데이트
-        document.addEventListener('DOMContentLoaded', () => {
-            ['startTime', 'endTime', 'frameInterval'].forEach(id => {
-                const el = document.getElementById(id);
-                if (el) {
-                    el.addEventListener('input', calculatePhaseInfo);
-                }
-            });
-            ['extractStart', 'extractEnd'].forEach(id => {
-                const el = document.getElementById(id);
-                if (el) {
-                    el.addEventListener('input', updateExtractInfo);
-                }
-            });
-        });
 
         // ===== WebGL Setup =====
         function initWebGL() {
@@ -717,6 +378,7 @@
                 return false;
             }
 
+            // Vertex shader - 단순히 전체 화면 사각형
             const vsSource = `
                 attribute vec2 aPosition;
                 attribute vec2 aTexCoord;
@@ -727,6 +389,7 @@
                 }
             `;
 
+            // Fragment shader - 차분 계산
             const fsSource = `
                 precision mediump float;
                 uniform sampler2D uCurrent;
@@ -762,10 +425,12 @@
                 return false;
             }
 
+            // 전체 화면 사각형 설정
             const positions = new Float32Array([
                 -1, -1,  1, -1,  -1, 1,
                 -1, 1,   1, -1,  1, 1
             ]);
+            // Y축 좌표 수정: Canvas와 동일한 방향으로 (상하 반전 제거)
             const texCoords = new Float32Array([
                 0, 0,  1, 0,  0, 1,
                 0, 1,  1, 0,  1, 1
@@ -824,11 +489,13 @@
             canvas.height = height;
             gl.viewport(0, 0, width, height);
 
+            // 텍스처 생성
             const currentTex = createTexture(gl, currentImg);
             const bgTex = createTexture(gl, bgImg);
 
             gl.useProgram(glProgram);
 
+            // 유니폼 설정
             gl.activeTexture(gl.TEXTURE0);
             gl.bindTexture(gl.TEXTURE_2D, currentTex);
             gl.uniform1i(gl.getUniformLocation(glProgram, 'uCurrent'), 0);
@@ -839,17 +506,21 @@
 
             gl.uniform1f(gl.getUniformLocation(glProgram, 'uThreshold'), threshold);
 
+            // 렌더링
             gl.drawArrays(gl.TRIANGLES, 0, 6);
 
+            // 결과 읽기
             const pixels = new Uint8ClampedArray(width * height * 4);
             gl.readPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
 
+            // 텍스처 정리
             gl.deleteTexture(currentTex);
             gl.deleteTexture(bgTex);
 
             return new ImageData(pixels, width, height);
         }
 
+        // CPU 폴백
         function generateMaskCPU(targetImg, bgImg, threshold, w, h) {
             const c1 = document.createElement('canvas'); 
             c1.width = w; c1.height = h;
@@ -904,14 +575,9 @@
                 document.getElementById('uploadSection').style.display = 'none';
                 document.getElementById('videoContainer').classList.add('active');
                 
+                // WebGL 초기화 (비디오 로드 후)
                 video.addEventListener('loadedmetadata', () => {
                     initWebGL();
-                    // 종료 시간 기본값 설정
-                    const defaultEnd = Math.min(5, video.duration);
-                    document.getElementById('endTime').value = defaultEnd.toFixed(2);
-                    document.getElementById('extractEnd').value = defaultEnd.toFixed(2);
-                    calculatePhaseInfo();
-                    updateExtractInfo();
                 }, { once: true });
             }
         });
@@ -936,35 +602,22 @@
         }
 
         function updateTags() {
-            if (currentMode === 'event') {
-                const container = document.getElementById('tagsContainer');
-                document.getElementById('tagCount').textContent = timepoints.length;
-                container.innerHTML = '';
-                
-                timepoints.forEach((time, index) => {
-                    const div = document.createElement('div');
-                    div.className = 'tag-item';
-                    div.innerHTML = `<span onclick="video.currentTime=${time}">${time.toFixed(2)}s</span> <span class="remove-btn" onclick="removeTimepoint(${index})">×</span>`;
-                    container.appendChild(div);
-                });
-            } else {
-                const container = document.getElementById('phaseTagsContainer');
-                document.getElementById('phaseTagCount').textContent = timepoints.length;
-                container.innerHTML = '';
-                
-                timepoints.forEach((time, index) => {
-                    const div = document.createElement('div');
-                    div.className = 'tag-item';
-                    div.innerHTML = `<span onclick="video.currentTime=${time}">${time.toFixed(2)}s</span> <span class="remove-btn" onclick="removeTimepoint(${index})">×</span>`;
-                    container.appendChild(div);
-                });
-            }
+            const container = document.getElementById('tagsContainer');
+            document.getElementById('tagCount').textContent = timepoints.length;
+            container.innerHTML = '';
+            
+            timepoints.forEach((time, index) => {
+                const div = document.createElement('div');
+                div.className = 'tag-item';
+                div.innerHTML = `<span onclick="video.currentTime=${time}">${time.toFixed(2)}s</span> <span class="remove-btn" onclick="removeTimepoint(${index})">×</span>`;
+                container.appendChild(div);
+            });
 
             document.getElementById('toStep2Btn').style.display = timepoints.length > 0 ? 'block' : 'none';
         }
 
         document.addEventListener('keydown', (e) => {
-            if (e.code === 'Space' && video.src && currentMode === 'event' && document.getElementById('step1-content').style.display !== 'none') {
+            if (e.code === 'Space' && video.src && document.getElementById('step1-content').style.display !== 'none') {
                 e.preventDefault();
                 video.paused ? video.play() : (video.pause(), addTimepoint());
             }
@@ -975,10 +628,12 @@
             const startTime = performance.now();
             showLoading('프레임 추출 중...', '사전 로딩으로 이후 처리 가속화');
             
+            // 배경 프레임 캡처 (0초)
             video.currentTime = 0;
             await waitForSeek();
             backgroundFrame = await captureFrame();
 
+            // 모든 선택된 시점의 프레임을 미리 추출 (병렬 처리)
             frameData = [];
             for (let i = 0; i < timepoints.length; i++) {
                 const time = timepoints[i];
@@ -987,8 +642,6 @@
                 const frame = await captureFrame();
                 frameData.push({ time, frame });
                 
-                const progress = Math.floor((i + 1) / timepoints.length * 100);
-                updateProgress(progress, `${progress}%`);
                 updateLoadingSubtext(`프레임 추출 중... ${i + 1}/${timepoints.length}`);
             }
 
@@ -997,6 +650,7 @@
 
             hideLoading();
             
+            // UI 전환
             document.getElementById('step1-content').style.display = 'none';
             document.getElementById('step2-content').style.display = 'block';
             document.getElementById('stepTitle').textContent = 'Step 2: 객체 추출 설정';
@@ -1025,11 +679,13 @@
             const w = video.videoWidth;
             const h = video.videoHeight;
 
+            // 원본 그리기
             const cvsOrig = document.getElementById('previewOriginal');
             cvsOrig.width = w; 
             cvsOrig.height = h;
             cvsOrig.getContext('2d').drawImage(sample.frame, 0, 0);
 
+            // 마스크 생성 (WebGL 가속)
             const cvsMask = document.getElementById('previewMask');
             cvsMask.width = w; 
             cvsMask.height = h;
@@ -1051,28 +707,31 @@
             const w = video.videoWidth;
             const h = video.videoHeight;
 
+            // 1. 정적 이미지 생성
             const finalCanvas = document.getElementById('finalCanvas');
             finalCanvas.width = w; 
             finalCanvas.height = h;
             const ctx = finalCanvas.getContext('2d');
 
+            // 배경 그리기
             ctx.drawImage(backgroundFrame, 0, 0);
 
+            // 각 시점의 객체 오버레이
             for (let i = 0; i < frameData.length; i++) {
                 const item = frameData[i];
-                const progress = Math.floor((i + 1) / frameData.length * 100);
-                updateProgress(progress, `${progress}%`);
                 updateLoadingSubtext(`객체 추출 중... ${i + 1}/${frameData.length}`);
                 
                 const mask = generateDifferenceMask(item.frame, backgroundFrame, threshold, w, h);
                 applyMaskAndDraw(ctx, item.frame, mask, w, h);
                 
+                // UI 업데이트를 위한 작은 지연
                 await new Promise(r => setTimeout(r, 10));
             }
 
             const imageTime = performance.now() - startTime;
             performanceStats.imageTime = imageTime;
 
+            // 2. 영상 생성
             showLoading('영상 생성 중...', '최적화된 스트림 렌더링');
             const videoStartTime = performance.now();
             
@@ -1084,8 +743,10 @@
 
             hideLoading();
             
+            // 성능 통계 표시
             displayPerformanceStats();
 
+            // UI 전환
             document.getElementById('step2-content').style.display = 'none';
             document.getElementById('step3-content').style.display = 'block';
             document.getElementById('stepTitle').textContent = 'Step 3: 결과 확인';
@@ -1102,6 +763,7 @@
             tempCtx.drawImage(sourceImg, 0, 0);
             const sourceData = tempCtx.getImageData(0, 0, w, h);
             
+            // 마스크 적용
             for (let i = 0; i < sourceData.data.length; i += 4) {
                 if (maskData.data[i] === 0) {
                     sourceData.data[i+3] = 0;
@@ -1138,6 +800,7 @@
             
             mediaRecorder.start();
 
+            // 오버레이 사전 생성 (WebGL 가속)
             const overlays = [];
             for (let item of frameData) {
                 const mask = generateDifferenceMask(item.frame, backgroundFrame, threshold, w, h);
@@ -1156,30 +819,29 @@
                 overlays.push({ time: item.time, img: tempC });
             }
 
-            // 추출 구간 설정
-            const startTime = currentMode === 'phase' ? extractStartTime : 0;
-            const endTime = currentMode === 'phase' ? extractEndTime : video.duration;
-            
-            video.currentTime = startTime;
+            // 영상 재생하며 실시간 렌더링
+            video.currentTime = 0;
             await waitForSeek();
             
-            const duration = endTime - startTime;
+            const duration = video.duration;
             const fps = 30;
             const frameTime = 1000 / fps;
-            let currentTime = startTime;
+            let currentTime = 0;
             let frameCount = 0;
             const totalFrames = Math.floor(duration * fps);
 
             return new Promise((resolve) => {
                 function renderFrame() {
-                    if (currentTime >= endTime) {
+                    if (currentTime >= duration) {
                         mediaRecorder.stop();
                         resolve();
                         return;
                     }
 
+                    // 현재 비디오 프레임 그리기
                     ctx.drawImage(video, 0, 0);
                     
+                    // 지나간 시점의 오버레이 누적
                     for (let ov of overlays) {
                         if (currentTime >= ov.time) {
                             ctx.globalAlpha = 0.8;
@@ -1197,8 +859,10 @@
                         updateLoadingSubtext(`영상 렌더링 중...`);
                     }
 
+                    // 다음 프레임으로 이동
                     video.currentTime = currentTime;
                     
+                    // requestAnimationFrame 대신 고정 간격 사용
                     setTimeout(renderFrame, frameTime);
                 }
 
@@ -1245,16 +909,8 @@
 
         function displayPerformanceStats() {
             const stats = performanceStats;
-            const modeText = currentMode === 'event' ? '이벤트 모드' : '구간 분석 모드';
-            let videoInfo = '';
-            if (currentMode === 'phase') {
-                const videoDuration = extractEndTime - extractStartTime;
-                videoInfo = `• 최종 영상 길이: ${videoDuration.toFixed(2)}초 (${extractStartTime.toFixed(2)}~${extractEndTime.toFixed(2)}초)<br>`;
-            }
             const html = `
-                ⏱️ <strong>처리 시간 통계</strong> (${modeText})<br>
-                • 분석 시점 수: ${timepoints.length}개<br>
-                ${videoInfo}
+                ⏱️ <strong>처리 시간 통계</strong><br>
                 • 프레임 추출: ${(stats.extractTime / 1000).toFixed(2)}초<br>
                 • 이미지 합성: ${(stats.imageTime / 1000).toFixed(2)}초<br>
                 • 영상 생성: ${(stats.videoTime / 1000).toFixed(2)}초<br>
